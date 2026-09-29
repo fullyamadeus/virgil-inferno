@@ -1,13 +1,8 @@
 # Virgil Desktop
 
-A personal, local study workspace in **C++20 and Qt 6 Widgets**. Milestones 1–4
-provide libraries, folders, course resources, a calendar, metadata search and backups.
-Document indexing and practice remain on the roadmap.
+A personal, local study workspace in **C++20 and Qt 6 Widgets**. Based off of the earlier web version of the Virgil app, avaible in: https://virgil-phi.vercel.app
+Organize semesters, courses and materials all in one app for an easier university experience.
 
-Materials stay in normal folders. Structured information lives in
-`.virgil/library.sqlite`: an automatically managed local file, with no server,
-account, subscription, cloud quota or database administration. Normal runtime
-has no network dependency, credentials, telemetry or mandatory update check.
 
 ## Build and run on Fedora 43
 
@@ -165,23 +160,3 @@ Libraries live wherever you choose, outside the source/build/install directories
 Removing the executable does not remove them. UI preferences use `QSettings`
 (normally `~/.config/Virgil/Virgil Inferno.conf` on Fedora).
 
-## Data safety and next steps
-
-Close Virgil before making a manual backup, and copy **the entire library,
-including hidden `.virgil`**. Keep materials unchanged during that copy.
-Verified **metadata-only** backups run after in-app imports, edits and moves, and
-once daily on open/refresh. The latest seven are retained in `.virgil/backups`;
-Settings can create one immediately. They do **not** protect material files. Full
-backup restore is not implemented. Imports currently
-require a local filesystem supporting hard links, with the destination on the
-same filesystem as `.virgil/staging`; an unsupported destination fails safely.
-
-Existing v1/v2/v3 libraries upgrade to schema 4 after verified metadata snapshots in
-`.virgil`. Moves/trash require Linux birth-time identities and atomic no-replace
-rename support on the same filesystem. There is no permanent erase command.
-
-Read [data safety and recovery](docs/data-safety.md) before using valuable data.
-Read the [architecture and learning guide](docs/architecture.md) for a walkthrough,
-the [roadmap](docs/roadmap.md) for all remaining scope, and
-[milestone 4 verification](docs/verification-m4.md) for current results and a short desktop checklist.
-Windows/macOS builds and behavior are not verified.
