@@ -1,0 +1,954 @@
+{
+  "program": "SEIS23 (four-year, English)",
+  "source": "https://finki.ukim.mk/en/program/SEIS23/",
+  "verified": "2026-09-27",
+  "note": "Offline snapshot of factual course codes/names. Not an admissions or prerequisite validator. Rows with contradictory codes excluded.",
+  "excludedContradictoryCodes": [
+    "F23L2S066",
+    "F23L1S026"
+  ],
+  "courses": [
+    {
+      "code": "F23L1W005",
+      "name": "Business and Management",
+      "semester": 1,
+      "required": true
+    },
+    {
+      "code": "F23L1W007",
+      "name": "Introduction to Computer Science",
+      "semester": 1,
+      "required": true
+    },
+    {
+      "code": "F23L2W002",
+      "name": "Mathematics 1",
+      "semester": 1,
+      "required": true
+    },
+    {
+      "code": "F23L1W018",
+      "name": "Professional skills",
+      "semester": 1,
+      "required": true
+    },
+    {
+      "code": "F23L1W004",
+      "name": "Sports and health",
+      "semester": 1,
+      "required": true
+    },
+    {
+      "code": "F23L1W020",
+      "name": "Structured programming",
+      "semester": 1,
+      "required": true
+    },
+    {
+      "code": "F23L1S003",
+      "name": "Computer Architecture and Organization",
+      "semester": 2,
+      "required": true
+    },
+    {
+      "code": "F23L2S001",
+      "name": "Mathematics 2",
+      "semester": 2,
+      "required": true
+    },
+    {
+      "code": "F23L2S015",
+      "name": "Object-Oriented Analysis and Design",
+      "semester": 2,
+      "required": true
+    },
+    {
+      "code": "F23L1S016",
+      "name": "Object-oriented programming",
+      "semester": 2,
+      "required": true
+    },
+    {
+      "code": "F23L2W001",
+      "name": "Algorithms and Data Structures",
+      "semester": 3,
+      "required": true
+    },
+    {
+      "code": "F23L2W014",
+      "name": "Computer Networks and Security",
+      "semester": 3,
+      "required": true
+    },
+    {
+      "code": "F23L3W001",
+      "name": "Mathematics 3",
+      "semester": 3,
+      "required": true
+    },
+    {
+      "code": "F23L2S002",
+      "name": "Analysis of software requirements",
+      "semester": 4,
+      "required": true
+    },
+    {
+      "code": "F23L2S030",
+      "name": "Artificial intelligence",
+      "semester": 4,
+      "required": true
+    },
+    {
+      "code": "F23L3S100",
+      "name": "Business Internship",
+      "semester": 4,
+      "required": true
+    },
+    {
+      "code": "F23L2S017",
+      "name": "Operating Systems",
+      "semester": 4,
+      "required": true
+    },
+    {
+      "code": "F23L3W004",
+      "name": "Databases",
+      "semester": 5,
+      "required": true
+    },
+    {
+      "code": "F23L3W008",
+      "name": "Introduction to Data Science",
+      "semester": 5,
+      "required": true
+    },
+    {
+      "code": "F23L3W009",
+      "name": "Software Design and Architecture",
+      "semester": 5,
+      "required": true
+    },
+    {
+      "code": "F23L3W140",
+      "name": "Advanced programming",
+      "semester": 5,
+      "required": true
+    },
+    {
+      "code": "F23L3S010",
+      "name": "Human-computer interaction design",
+      "semester": 6,
+      "required": true
+    },
+    {
+      "code": "F23L3S012",
+      "name": "Integrated systems",
+      "semester": 6,
+      "required": true
+    },
+    {
+      "code": "F23L3S138",
+      "name": "Advanced databases",
+      "semester": 6,
+      "required": true
+    },
+    {
+      "code": "F23L3S019",
+      "name": "Software Quality and Testing",
+      "semester": 6,
+      "required": true
+    },
+    {
+      "code": "F23L3W021",
+      "name": "Team project",
+      "semester": 7,
+      "required": true
+    },
+    {
+      "code": "F23L3S168",
+      "name": "Thesis",
+      "semester": 8,
+      "required": true
+    },
+    {
+      "code": "F23L3S028",
+      "name": "Entrepreneurship",
+      "semester": 8,
+      "required": true
+    },
+    {
+      "code": "F23L3S022",
+      "name": "ICT Project Management",
+      "semester": 8,
+      "required": true
+    },
+    {
+      "code": "F23L1S052",
+      "name": "E-learning",
+      "semester": 2,
+      "required": false
+    },
+    {
+      "code": "F23L1S116",
+      "name": "Computer components",
+      "semester": 2,
+      "required": false
+    },
+    {
+      "code": "F23L1S120",
+      "name": "Creative Problem-Solving Skills",
+      "semester": 2,
+      "required": false
+    },
+    {
+      "code": "F23L1S146",
+      "name": "Web Design Basics",
+      "semester": 2,
+      "required": false
+    },
+    {
+      "code": "F23L2S061",
+      "name": "Wireless and mobile systems",
+      "semester": 4,
+      "required": false
+    },
+    {
+      "code": "F23L2S082",
+      "name": "Visual programming",
+      "semester": 4,
+      "required": false
+    },
+    {
+      "code": "F23L2S084",
+      "name": "Introduction to Ecoinformatics",
+      "semester": 4,
+      "required": false
+    },
+    {
+      "code": "F23L2S090",
+      "name": "Introduction to Random Processes",
+      "semester": 4,
+      "required": false
+    },
+    {
+      "code": "F23L2S095",
+      "name": "Digital image processing",
+      "semester": 4,
+      "required": false
+    },
+    {
+      "code": "F23L2S097",
+      "name": "Design of Algorithms",
+      "semester": 4,
+      "required": false
+    },
+    {
+      "code": "F23L2S099",
+      "name": "E-government",
+      "semester": 4,
+      "required": false
+    },
+    {
+      "code": "F23L2S042",
+      "name": "Electrical circuits",
+      "semester": 4,
+      "required": false
+    },
+    {
+      "code": "F23L2S110",
+      "name": "Internet technologies",
+      "semester": 4,
+      "required": false
+    },
+    {
+      "code": "F23L2S051",
+      "name": "Computational Thinking in Education",
+      "semester": 4,
+      "required": false
+    },
+    {
+      "code": "F23L2S114",
+      "name": "Computer graphics",
+      "semester": 4,
+      "required": false
+    },
+    {
+      "code": "F23L2S119",
+      "name": "Concepts of the Information Society",
+      "semester": 4,
+      "required": false
+    },
+    {
+      "code": "F23L2S124",
+      "name": "Media and Communications",
+      "semester": 4,
+      "required": false
+    },
+    {
+      "code": "F23L2S164",
+      "name": "Information Theory with Digital Communications",
+      "semester": 4,
+      "required": false
+    },
+    {
+      "code": "F23L2W006",
+      "name": "Probability and statistics",
+      "semester": 3,
+      "required": false
+    },
+    {
+      "code": "F23L2W096",
+      "name": "Digitization",
+      "semester": 3,
+      "required": false
+    },
+    {
+      "code": "F23L2W100",
+      "name": "Economics for ICT Engineers",
+      "semester": 3,
+      "required": false
+    },
+    {
+      "code": "F23L2W104",
+      "name": "Engineering Mathematics",
+      "semester": 3,
+      "required": false
+    },
+    {
+      "code": "F23L2W109",
+      "name": "Client-side Internet programming",
+      "semester": 3,
+      "required": false
+    },
+    {
+      "code": "F23L2W055",
+      "name": "Multimedia technologies",
+      "semester": 3,
+      "required": false
+    },
+    {
+      "code": "F23L2W147",
+      "name": "Fundamentals of Communication Systems",
+      "semester": 3,
+      "required": false
+    },
+    {
+      "code": "F23L2W067",
+      "name": "Foundations of Information Theory",
+      "semester": 3,
+      "required": false
+    },
+    {
+      "code": "F23L2W165",
+      "name": "Technical Support Management",
+      "semester": 3,
+      "required": false
+    },
+    {
+      "code": "F23L2W167",
+      "name": "User Interface Design Templates",
+      "semester": 3,
+      "required": false
+    },
+    {
+      "code": "F23L3S163",
+      "name": "Automation of Machine Learning Processes",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S073",
+      "name": "Agent-based systems",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S059",
+      "name": "Network Administration",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S040",
+      "name": "Embedded microprocessor systems",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S153",
+      "name": "Artificial intelligence for games",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S062",
+      "name": "Virtualization",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S087",
+      "name": "Introduction to Network Science",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S091",
+      "name": "Geographic Information Systems",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S093",
+      "name": "Digital Forensics",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S094",
+      "name": "Digital libraries",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S025",
+      "name": "E-commerce and mobile commerce",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S113",
+      "name": "Computer animation",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S115",
+      "name": "Computer sound, music, and speech",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S118",
+      "name": "Continuous integration and delivery",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S122",
+      "name": "Cryptography",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S036",
+      "name": "Machine learning",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S125",
+      "name": "Measurement and analysis of traffic",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S135",
+      "name": "Multimedia systems",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S039",
+      "name": "Foundations of Computer Science Theory",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S149",
+      "name": "Parallel programming",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S150",
+      "name": "Data mining",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S047",
+      "name": "Signal processing",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S071",
+      "name": "School-Age Psychology",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S057",
+      "name": "Working with Gifted Students",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S155",
+      "name": "Service-Oriented Architectures",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S157",
+      "name": "Data Warehouses and Analytical Processing",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S159",
+      "name": "Software-defined security",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S166",
+      "name": "Distance learning",
+      "semester": 6,
+      "required": false
+    },
+    {
+      "code": "F23L3S139",
+      "name": "Web3 applications",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S069",
+      "name": "Adaptive and Interactive Web Information Systems",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S078",
+      "name": "Biologically inspired computing",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S080",
+      "name": "Web search engines",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S083",
+      "name": "Virtual reality",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S086",
+      "name": "Introduction to Cognitive Sciences",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S063",
+      "name": "Computer Network Design",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S101",
+      "name": "Ethical hacking",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S102",
+      "name": "ICT for Development",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S107",
+      "name": "Intelligent systems",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S111",
+      "name": "Infrastructure programming",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S070",
+      "name": "Macedonian language",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S054",
+      "name": "Methodology of Informatics",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S127",
+      "name": "Mobile applications",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S130",
+      "name": "Business Process Modeling and Management",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S131",
+      "name": "Modeling and simulation",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S132",
+      "name": "Modern trends in robotics",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S141",
+      "name": "Unstructured databases",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S144",
+      "name": "Operational research",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S106",
+      "name": "Knowledge Discovery with Deep Learning",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S112",
+      "name": "Programming Languages and Compilers",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S160",
+      "name": "Software-defined networks",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3S162",
+      "name": "Sharing and Calculating in a Crowd",
+      "semester": 8,
+      "required": false
+    },
+    {
+      "code": "F23L3W060",
+      "name": "System administration",
+      "semester": 5,
+      "required": false
+    },
+    {
+      "code": "F23L3W024",
+      "name": "Web programming",
+      "semester": 5,
+      "required": false
+    },
+    {
+      "code": "F23L3W081",
+      "name": "Visualization",
+      "semester": 5,
+      "required": false
+    },
+    {
+      "code": "F23L3W050",
+      "name": "Educational Software Design",
+      "semester": 5,
+      "required": false
+    },
+    {
+      "code": "F23L3W043",
+      "name": "Information Security",
+      "semester": 5,
+      "required": false
+    },
+    {
+      "code": "F23L3W044",
+      "name": "Computer electronics",
+      "semester": 5,
+      "required": false
+    },
+    {
+      "code": "F23L3W053",
+      "name": "Computer Ethics",
+      "semester": 5,
+      "required": false
+    },
+    {
+      "code": "F23L3W035",
+      "name": "Linear Algebra and Applications",
+      "semester": 5,
+      "required": false
+    },
+    {
+      "code": "F23L3W134",
+      "name": "Multimedia networks",
+      "semester": 5,
+      "required": false
+    },
+    {
+      "code": "F23L3W136",
+      "name": "Advanced web design",
+      "semester": 5,
+      "required": false
+    },
+    {
+      "code": "F23L3W142",
+      "name": "Natural language processing",
+      "semester": 5,
+      "required": false
+    },
+    {
+      "code": "F23L3W148",
+      "name": "Fundamentals of Robotics",
+      "semester": 5,
+      "required": false
+    },
+    {
+      "code": "F23L3W037",
+      "name": "Parallel and distributed processing",
+      "semester": 5,
+      "required": false
+    },
+    {
+      "code": "F23L3W056",
+      "name": "Personalized learning",
+      "semester": 5,
+      "required": false
+    },
+    {
+      "code": "F23L3W065",
+      "name": "Cyber security",
+      "semester": 5,
+      "required": false
+    },
+    {
+      "code": "F23L3W158",
+      "name": "Modern Computer Architectures",
+      "semester": 5,
+      "required": false
+    },
+    {
+      "code": "F23L3W161",
+      "name": "Graph Theory and Social Networks",
+      "semester": 5,
+      "required": false
+    },
+    {
+      "code": "F23L3W072",
+      "name": "Autonomous robotics",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W074",
+      "name": "Database administration",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W075",
+      "name": "IS Analysis and Design",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W121",
+      "name": "Blockchain and Cryptocurrencies",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W079",
+      "name": "Web-based systems",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W076",
+      "name": "Introduction to Time Series Analysis",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W085",
+      "name": "Introduction to Bioinformatics",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W088",
+      "name": "Introduction to Smart Cities",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W089",
+      "name": "Introduction to Pattern Recognition",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W154",
+      "name": "Introduction to Massive Data Mining",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W092",
+      "name": "Digital Post-Production",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W064",
+      "name": "Distributed systems",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W098",
+      "name": "Distributed data storage",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W103",
+      "name": "Implementation of free and open-source software systems",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W105",
+      "name": "Innovations in ICT",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W108",
+      "name": "Internet of Things",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W162",
+      "name": "Quantum computing",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W117",
+      "name": "Computer-aided manufacturing",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W123",
+      "name": "Machine vision",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W027",
+      "name": "Management Information Systems",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W126",
+      "name": "Research Methodology in ICT",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W128",
+      "name": "Mobile Information Systems",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W129",
+      "name": "Mobile platforms and programming",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W133",
+      "name": "Network and mobile forensics",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W137",
+      "name": "Advanced Human-Computer Interaction",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W145",
+      "name": "Optical networks",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W068",
+      "name": "Cloud Computing",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W152",
+      "name": "Video game programming",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W038",
+      "name": "Programming paradigms",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W200",
+      "name": "Sensor systems",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W156",
+      "name": "Decision support systems",
+      "semester": 7,
+      "required": false
+    },
+    {
+      "code": "F23L3W048",
+      "name": "Embedded Systems Software",
+      "semester": 7,
+      "required": false
+    }
+  ]
+}

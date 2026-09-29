@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Virgil
+Comment=Local study workspace for courses, materials and calendar
+Exec="@CMAKE_INSTALL_FULL_BINDIR@/virgil-desktop"
+TryExec=@CMAKE_INSTALL_FULL_BINDIR@/virgil-desktop
+Icon=virgil-desktop
+Terminal=false
+Categories=Education;
+Keywords=study;courses;materials;calendar;
+StartupNotify=true
