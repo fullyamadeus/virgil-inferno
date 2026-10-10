@@ -92,11 +92,14 @@ struct WeeklyClass {
     QTime end = QTime(10, 30);
     QString timeZone = "Europe/Skopje";
     QString ambiguity = "reject"; // reject / earlier / later; gaps are never shifted.
+    QString room; // Optional room for this weekday slot.
 };
 struct ExamRange { QString id; QString semesterId; QDate start; QDate end; };
+inline const QStringList weeklyClassKinds = {"lecture", "lab", "auditory"};
 inline const QStringList eventKinds = {"exam", "assignment", "review_session", "lecture", "lab"};
 inline QString eventKindTitle(const QString& kind)
 {
+    if (kind == "auditory") return "Auditory Exercises";
     const QStringList titles{"Exam", "Assignment", "Review session", "Lecture", "Lab"};
     const qsizetype index = eventKinds.indexOf(kind);
     return index < 0 ? kind : titles[index];

@@ -36,7 +36,7 @@ add_library(virgil_core STATIC
 target_include_directories(virgil_core PUBLIC src)
 target_link_libraries(virgil_core PUBLIC Qt6::Core Qt6::Sql PRIVATE virgil_options)
 
-add_library(virgil_ui STATIC src/ui/mainwindow.cpp src/ui/resources.cpp src/ui/calendarpage.cpp)
+add_library(virgil_ui STATIC src/ui/mainwindow.cpp src/ui/resources.cpp src/ui/calendarpage.cpp src/ui/calendarweek.cpp)
 target_link_libraries(virgil_ui PUBLIC virgil_core Qt6::Widgets PRIVATE virgil_options)
 add_executable(virgil-desktop src/main.cpp assets/application.qrc)
 target_link_libraries(virgil-desktop PRIVATE virgil_ui virgil_options)

@@ -89,17 +89,23 @@ remain visible and open with the desktop. The other pages explain deferred featu
 
 ## Calendar
 
-- **Calendar** has Monday-first Month/Week views, Previous/Next/Today controls,
+- **Calendar** has Monday–Saturday Month/Week views, Previous/Next/Today controls,
   a date picker, semester filtering, course colors and a Coming up list. Click a
   day to enter its week; double-click an entry to edit it. Events in view lists
-  every entry, including those that need scrolling inside a day cell.
+  every entry, including saved Sunday records. Week view runs from **08:00 to
+  21:00**, positions entries by their actual times and places overlaps side by
+  side. All-day events, clock-change warnings and events entirely outside those
+  hours appear above the time grid. Scroll to reach later hours.
 - Add/edit/delete exams, assignments, review sessions, individual lectures and
   labs, with an optional course. Assignments can be marked complete or incomplete.
   Independent events appear in every semester filter; completed events remain
   visible but leave Coming up.
-- **Weekly timetable** adds several weekdays with separate times and lecture/lab
-  types, including Sunday. Edit/delete individual slots. Each stores local wall
+- **Weekly timetable** adds several weekdays with separate times and lecture, lab
+  or auditory exercise types. Edit/delete individual slots. Each stores local wall
   times and its timezone; the calendar projects occurrences without saving copies.
+  Each weekday has an optional **Room** field, shown in small text at the top left
+  of its Month/Week entry.
+  Auditory exercises show an **AUDITORY** label and a gray top-right triangle. Labs show **LAB**; each type label appears once.
 - **Exam periods** supports up to three inclusive, non-overlapping ranges inside
   each semester. Adjacent dates are allowed. Classes pause during the first,
   resume after it, and stop from the second onward; the third never restarts them.

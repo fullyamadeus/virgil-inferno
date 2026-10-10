@@ -78,7 +78,7 @@ QList<Occurrence> occurrences(const Snapshot& snapshot, QDate first, QDate last,
     for (const auto& event : snapshot.events) {
         if (!visible(semesterId, event.semesterId)) continue;
         Occurrence entry{event.id, {}, event.date, event.title, event.kind, event.courseId, event.allDay,
-                         event.startsAt, event.endsAt, event.completed, {}};
+                         event.startsAt, event.endsAt, event.completed, {}, {}};
         if (event.allDay) { if (event.date >= first && event.date <= last) result.append(entry); }
         else appendTimed(result, entry, first, last, zone);
     }
@@ -89,7 +89,7 @@ QList<Occurrence> occurrences(const Snapshot& snapshot, QDate first, QDate last,
         if (!semester) continue;
         for (QDate day = first.addDays(-2); day.isValid() && day <= last.addDays(2); day = day.addDays(1)) {
             if (day.dayOfWeek() != slot.weekday || !recurringClassVisible(day, *semester, snapshot.examRanges)) continue;
-            Occurrence entry{{}, slot.id, day, slot.title, slot.kind, slot.courseId, false, {}, {}, false, {}};
+            Occurrence entry{{}, slot.id, day, slot.title, slot.kind, slot.courseId, false, {}, {}, false, {}, slot.room};
             try {
                 entry.startsAt = localToUtc(day, slot.start, slot.timeZone, slot.ambiguity);
                 entry.endsAt = localToUtc(day, slot.end, slot.timeZone, slot.ambiguity);

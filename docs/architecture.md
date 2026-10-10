@@ -121,7 +121,7 @@ Virgil Library/
       Past Exams/
       Other Materials/notes.txt
   .virgil/
-    library.sqlite       structured metadata, schema version 4
+    library.sqlite       structured metadata, schema version 6
     library.id           same UUID as the database; detects the wrong mount/root
     library.lock         present while a process owns the library
     staging/             hidden import working files; never listed as materials
@@ -130,6 +130,8 @@ Virgil Library/
     library.sqlite.before-v2-<UUID>.sqlite  verified schema 1 snapshot
     library.sqlite.before-v3-<UUID>.sqlite  verified schema 2 snapshot
     library.sqlite.before-v4-<UUID>.sqlite  verified schema 3 snapshot
+    library.sqlite.before-v5-<UUID>.sqlite  verified schema 4 snapshot
+    library.sqlite.before-v6-<UUID>.sqlite  verified schema 5 snapshot
 ```
 
 The filesystem is authoritative for file bytes and locations. SQLite is
@@ -310,3 +312,33 @@ file identity matching `virgil-desktop.desktop`, so KDE can associate the runnin
 Wayland window with its launcher. The existing QSettings identity is unchanged.
 CMake installs the executable, desktop entry and SVG/PNG icons. The desktop entry
 records the configured absolute install path, so GUI launch does not rely on PATH.
+
+Schema 5 extends weekly classes with auditory exercises, rebuilding the constrained
+table transactionally after a verified metadata snapshot. Existing class UUIDs and
+values are copied unchanged. A Qt item delegate paints their gray corner triangle;
+the ordinary item text supplies the AUDITORY label in month and week views.
+
+Schema 6 adds an optional room to each weekly slot, defaulting existing records
+to an empty string after a verified pre-migration backup. Projection copies it
+into occurrences. The item delegate reserves a small-font header above the title,
+so rooms do not overlap the title or auditory triangle; the full room also appears
+in the tooltip and accessible text. The form allows a different room per weekday.
+
+## Calendar time grid
+
+`CalendarWeek` is a native scroll area containing a painted time grid and Qt-owned
+button widgets for entries. All six columns share the same 08:00–21:00 scale;
+y positions and heights come from local start/end minutes. An interval partition
+assigns each overlapping group to columns, reusing a column when its earlier
+entry ends. Touching endpoints do not count as overlaps. Resizing recalculates
+horizontal geometry without changing times or writing metadata.
+
+The separate header row keeps all-day entries, unresolved clock changes and
+entries wholly outside displayed hours accessible. Partially visible entries
+are clipped to the grid's hours, with original times in tooltips. Saved Sunday
+records remain in the agenda and timetable; month/week grids show Monday through
+Saturday and new weekly forms offer six days. Existing Sunday slots can still
+be edited. Shared display formatting removes old auto-generated Lab/Auditory
+Exercises suffixes before adding one bracketed badge, without editing saved titles.
+The library banner and calendar policy banner have been removed to free space;
+library details remain in Settings and timezone/teaching controls remain available.

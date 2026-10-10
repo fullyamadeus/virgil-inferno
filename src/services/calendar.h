@@ -21,6 +21,7 @@ struct Occurrence {
     QDateTime endsAt;
     bool completed = false;
     QString warning;
+    QString room;
 };
 QList<Occurrence> occurrences(const Snapshot& snapshot, QDate first, QDate last,
                              const QString& semesterId = {}, const QString& displayZone = {});

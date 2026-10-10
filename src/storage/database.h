@@ -31,7 +31,7 @@ public:
     void reconcileFolders(const QList<Folder>& folders, const std::function<void()>& checkpoint);
     void createSnapshot(const QString& filename) const;
     void verifySnapshot(const QString& filename) const;
-    static constexpr int schemaVersion = 4;
+    static constexpr int schemaVersion = 6;
     static constexpr int applicationId = 0x5647524C;
 
 private:

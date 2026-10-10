@@ -171,6 +171,73 @@ private slots:
         library->completeCalendarAssignment(assignmentId, false); library->removeCalendarEvent(assignmentId); library->removeWeeklyClass(slotId);
         QCOMPARE(library->snapshot().events.size(), 4); QCOMPARE(library->snapshot().weeklyClasses.size(), 1);
     }
+    void auditoryClassesAndSchemaFourUpgrade()
+    {
+        QTemporaryDir temporary;
+        auto library = Library::create(temporary.path());
+        const auto semester = addSemester(*library);
+        auto slot = weekly(semester);
+        library->saveWeeklyClasses({slot});
+        slot = library->snapshot().weeklyClasses.first();
+        library.reset();
+        const auto filename = temporary.filePath(".virgil/library.sqlite");
+        {
+            Database db(filename, false);
+            db.query("ALTER TABLE weekly_classes DROP COLUMN room");
+            auto schema = db.query("SELECT sql FROM sqlite_master WHERE name='weekly_classes'");
+            QVERIFY(schema.next());
+            QString oldSchema = schema.value(0).toString(); schema.finish();
+            oldSchema.replace(",'auditory'", "");
+            Transaction transaction(db);
+            db.query("CREATE TEMP TABLE saved_classes AS SELECT * FROM weekly_classes");
+            db.query("DROP TABLE weekly_classes"); db.query(oldSchema);
+            db.query("INSERT INTO weekly_classes SELECT * FROM saved_classes");
+            db.query("CREATE INDEX weekly_classes_semester ON weekly_classes(semester_id)");
+            db.query("PRAGMA user_version=4"); transaction.commit();
+        }
+        library = Library::open(temporary.path());
+        QCOMPARE(library->snapshot().weeklyClasses.first().id, slot.id);
+        QCOMPARE(library->snapshot().weeklyClasses.first().kind, QString("lecture"));
+        QCOMPARE(QDir(temporary.filePath(".virgil")).entryList({"*.before-v5-*.sqlite"}, QDir::Files).size(), 1);
+        slot.kind = "auditory"; library->saveWeeklyClasses({slot});
+        library.reset(); library = Library::open(temporary.path());
+        QCOMPARE(library->snapshot().weeklyClasses.first().kind, QString("auditory"));
+        const auto entries = calendar::occurrences(library->snapshot(), day("2026-10-05"), day("2026-10-05"), semester, "Europe/Skopje");
+        QCOMPARE(entries.size(), 1); QCOMPARE(entries.first().kind, QString("auditory"));
+        QCOMPARE(entries.first().classId, slot.id);
+        slot.kind = "invalid"; QVERIFY_EXCEPTION_THROWN(library->saveWeeklyClasses({slot}), Error);
+        library->removeWeeklyClass(slot.id); QVERIFY(library->snapshot().weeklyClasses.isEmpty());
+    }
+    void weeklyRoomsUpgradePersistAndClear()
+    {
+        QTemporaryDir temporary;
+        auto library = Library::create(temporary.path());
+        const auto semester = addSemester(*library);
+        auto slot = weekly(semester); slot.kind = "auditory";
+        library->saveWeeklyClasses({slot}); slot = library->snapshot().weeklyClasses.first();
+        library.reset();
+        {
+            Database db(temporary.filePath(".virgil/library.sqlite"), false);
+            db.query("ALTER TABLE weekly_classes DROP COLUMN room"); db.query("PRAGMA user_version=5");
+        }
+        library = Library::open(temporary.path());
+        auto saved = library->snapshot().weeklyClasses.first();
+        QCOMPARE(saved.id, slot.id); QCOMPARE(saved.kind, slot.kind); QVERIFY(saved.room.isEmpty());
+        QCOMPARE(QDir(temporary.filePath(".virgil")).entryList({"*.before-v6-*.sqlite"}, QDir::Files).size(), 1);
+        slot.room = "  Лаб 204  "; library->saveWeeklyClasses({slot});
+        auto other = weekly(semester); other.weekday = 3; other.room = "A-12";
+        library->saveWeeklyClasses({other});
+        library.reset(); library = Library::open(temporary.path());
+        QCOMPARE(library->snapshot().weeklyClasses.first().room, QString("Лаб 204"));
+        QCOMPARE(library->snapshot().weeklyClasses.last().room, QString("A-12"));
+        const auto entries = calendar::occurrences(library->snapshot(), day("2026-10-05"), day("2026-10-07"), semester, "Europe/Skopje");
+        QCOMPARE(entries.size(), 2); QCOMPARE(entries.first().room, QString("Лаб 204")); QCOMPARE(entries.last().room, QString("A-12"));
+        slot.room = "bad\nroom"; QVERIFY_EXCEPTION_THROWN(library->saveWeeklyClasses({slot}), Error);
+        slot.room.clear(); library->saveWeeklyClasses({slot});
+        library.reset(); library = Library::open(temporary.path());
+        QVERIFY(library->snapshot().weeklyClasses.first().room.isEmpty());
+        QCOMPARE(library->snapshot().weeklyClasses.last().room, QString("A-12"));
+    }
     void timedEventValidationAndTimezoneChangesDoNotMoveInstants()
     {
         QTemporaryDir temporary; auto library = Library::create(temporary.path()); const auto semester = addSemester(*library);

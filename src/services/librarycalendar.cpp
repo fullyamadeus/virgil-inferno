@@ -92,9 +92,9 @@ void Library::saveWeeklyClasses(QList<WeeklyClass> classes)
     for (auto& slot : classes) {
         titleRequired(slot.title); checkAssociation(saved, slot.semesterId, slot.courseId, true);
         (void)calendar::timeZone(slot.timeZone);
-        if ((slot.kind != "lecture" && slot.kind != "lab") || slot.weekday < 1 || slot.weekday > 7
+        if (!weeklyClassKinds.contains(slot.kind) || slot.weekday < 1 || slot.weekday > 7
             || !slot.start.isValid() || !slot.end.isValid() || slot.end <= slot.start)
-            throw Error("Choose a lecture/lab weekday and an end time after its start.");
+            throw Error("Choose a lecture, lab or auditory exercise weekday and an end time after its start.");
         if (!QStringList{"reject", "earlier", "later"}.contains(slot.ambiguity)) throw Error("Choose a repeated-time policy.");
         if (slot.id.isEmpty()) slot.id = newId();
         else {
@@ -102,18 +102,22 @@ void Library::saveWeeklyClasses(QList<WeeklyClass> classes)
             for (const auto& previous : saved.weeklyClasses) if (previous.id == slot.id) exists = true;
             if (!exists) throw Error("The weekly class no longer exists.");
         }
+        slot.room = slot.room.trimmed();
+        if (slot.room.contains(QChar::Null) || slot.room.contains('\n') || slot.room.contains('\r'))
+            throw Error("Enter the room on a single line.");
+        if (slot.room.isEmpty()) slot.room = QStringLiteral("");
         if (ids.contains(slot.id)) throw Error("A weekly class was edited twice in the same request.");
         ids.insert(slot.id);
     }
     {
         Transaction transaction(*database_);
         for (const auto& slot : classes)
-            database_->query("INSERT INTO weekly_classes VALUES (?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET "
+            database_->query("INSERT INTO weekly_classes (id,semester_id,course_id,title,kind,weekday,start_time,end_time,timezone,ambiguity,room) VALUES (?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET "
                 "semester_id=excluded.semester_id,course_id=excluded.course_id,title=excluded.title,kind=excluded.kind,"
                 "weekday=excluded.weekday,start_time=excluded.start_time,end_time=excluded.end_time,"
-                "timezone=excluded.timezone,ambiguity=excluded.ambiguity",
+                "timezone=excluded.timezone,ambiguity=excluded.ambiguity,room=excluded.room",
                 {slot.id, slot.semesterId, optional(slot.courseId), slot.title.trimmed(), slot.kind, slot.weekday,
-                 slot.start.toString("HH:mm:ss"), slot.end.toString("HH:mm:ss"), slot.timeZone, slot.ambiguity});
+                 slot.start.toString("HH:mm:ss"), slot.end.toString("HH:mm:ss"), slot.timeZone, slot.ambiguity, slot.room});
         transaction.commit();
     }
     automaticBackup(true);

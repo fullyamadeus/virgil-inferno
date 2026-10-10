@@ -165,8 +165,6 @@ void MainWindow::buildUi()
 
     auto* central = new QWidget(this);
     auto* layout = new QVBoxLayout(central);
-    libraryLabel_ = textLabel("No library open. Create a library or open one from a directory you choose.", central);
-    layout->addWidget(libraryLabel_);
     errorLabel_ = textLabel({}, central);
     errorLabel_->setObjectName("noticeLabel");
     errorLabel_->setFrameStyle(QFrame::StyledPanel);
@@ -514,7 +512,6 @@ void MainWindow::applySnapshot(const Snapshot& snapshot, const QString& message)
     calendar_->setSnapshot(snapshot);
     settings_.setValue("library/lastPath", snapshot.root);
     settings_.sync();
-    libraryLabel_->setText("Library: " + snapshot.root);
     setWindowTitle(QFileInfo(snapshot.root).fileName() + " — Virgil Desktop");
     const QSignalBlocker blocker(courses_);
     courses_->clear();
@@ -558,7 +555,7 @@ void MainWindow::applySnapshot(const Snapshot& snapshot, const QString& message)
                                "Open Calendar for upcoming events and weekly classes. Saved practice arrives in milestone 6.")
         .arg(snapshot.semesters.size()).arg(snapshot.courses.size()).arg(available).arg(snapshot.materials.size() - available)
         .arg(currentCourses.isEmpty() ? "No courses in a semester covering today. Browse Courses for all semesters." : currentCourses.join('\n')));
-    settingsLabel_->setText("Library: " + snapshot.root + "\nLibrary ID: " + snapshot.libraryId + "\nMetadata schema: 4\nQt runtime: " + qVersion()
+    settingsLabel_->setText("Library: " + snapshot.root + "\nLibrary ID: " + snapshot.libraryId + "\nMetadata schema: 6\nQt runtime: " + qVersion()
         + "\nCalendar timezone: " + snapshot.calendarTimeZone + "\nPreferences: " + settings_.fileName()
         + QString("\nMetadata snapshots retained: %1 (materials are not backed up)").arg(snapshot.backups.size())
         + "\n\nSQLite is a local metadata file. No server, account, subscription, quota or database administration is needed.");

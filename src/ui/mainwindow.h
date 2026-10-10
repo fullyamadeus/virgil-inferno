@@ -82,7 +82,6 @@ private:
     QTreeWidget* courses_ = nullptr;
     QTableView* materials_ = nullptr;
     QStandardItemModel* materialModel_ = nullptr;
-    QLabel* libraryLabel_ = nullptr;
     QLabel* errorLabel_ = nullptr;
     QLabel* dashboard_ = nullptr;
     QLabel* settingsLabel_ = nullptr;

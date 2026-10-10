@@ -110,7 +110,7 @@ checks and native-desktop limitations. Implemented:
 - Monday-first month/week views, semester filters, course colors, event editing and
   deletion for exams/assignments/review sessions/individual lectures and labs.
   Optional course associations, all-day/timed events and appropriate completion.
-- Weekly lecture/lab schedules store weekday + local wall times + timezone.
+- Weekly lecture/lab/auditory exercise schedules store weekday + local wall times + timezone.
   All-day events store dates; timed instants store unambiguous timestamps.
   Default Europe/Skopje, with explicit handling and tests for ambiguous/nonexistent
   local times during daylight-saving transitions. Do not silently guess.
@@ -125,7 +125,12 @@ checks and native-desktop limitations. Implemented:
 
 Implementation: native month/week grids and agenda, semester filters, upcoming
 saved events, five event types, assignment completion, weekly lecture/lab CRUD
-with multiple weekdays, and exam-period CRUD. Schema 4 stores local recurrence
+with multiple weekdays, and exam-period CRUD. Auditory exercises carry an AUDITORY
+label and a gray corner triangle; schema 5 extends weekly types while preserving
+existing records with a verified pre-migration backup. Schema 6 adds optional rooms
+per weekday, shown in small text at the top left of each calendar entry.
+Month/Week grids now show Monday–Saturday; Week uses an 08:00–21:00 time axis
+with proportional placement and side-by-side overlaps. Schema 4 introduced local recurrence
 rules separately from UTC event instants. Teaching dates can override the explicit
 season defaults. Clock gaps are never shifted; unresolved repeated times produce
 visible weekly warnings. Course color selectors use names in both forms.

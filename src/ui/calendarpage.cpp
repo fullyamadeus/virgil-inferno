@@ -1,4 +1,6 @@
 #include "ui/calendarpage.h"
+#include "ui/calendarweek.h"
+#include <QStackedWidget>
 #include "services/librarycontroller.h"
 #include "services/calendar.h"
 #include "domain/error.h"
@@ -14,6 +16,10 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QMessageBox>
+#include <QPainter>
+#include <QApplication>
+#include <QStyle>
+#include <QStyledItemDelegate>
 #include <QPushButton>
 #include <QSignalBlocker>
 #include <QSplitter>
@@ -26,6 +32,60 @@
 
 namespace virgil {
 namespace {
+constexpr int classKindRole = Qt::UserRole + 2;
+constexpr int classRoomRole = Qt::UserRole + 3;
+class CalendarEntryDelegate final : public QStyledItemDelegate {
+public:
+    using QStyledItemDelegate::QStyledItemDelegate;
+    QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const override
+    {
+        QSize size = QStyledItemDelegate::sizeHint(option, index);
+        if (!index.data(classRoomRole).toString().isEmpty()) {
+            QStyleOptionViewItem styled(option); initStyleOption(&styled, index);
+            size.rheight() += QFontMetrics(roomFont(styled.font)).height() + 4;
+        }
+        return size;
+    }
+    void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override
+    {
+        const QString room = index.data(classRoomRole).toString();
+        if (room.isEmpty()) QStyledItemDelegate::paint(painter, option, index);
+        else {
+            QStyleOptionViewItem styled(option); initStyleOption(&styled, index);
+            const QFont smallFont = roomFont(styled.font);
+            const QFontMetrics metrics(smallFont);
+            const int headerHeight = metrics.height() + 4;
+            // Paint the whole background, then reserve a separate line above the title.
+            auto background = styled; background.text.clear();
+            const QStyle* style = option.widget ? option.widget->style() : QApplication::style();
+            style->drawControl(QStyle::CE_ItemViewItem, &background, painter, option.widget);
+            auto body = option; body.rect.adjust(0, headerHeight, 0, 0);
+            QStyledItemDelegate::paint(painter, body, index);
+            painter->save(); painter->setClipRect(option.rect); painter->setFont(smallFont);
+            painter->setPen(styled.palette.color((option.state & QStyle::State_Selected)
+                ? QPalette::HighlightedText : QPalette::Text));
+            const QRect roomRect = option.rect.adjusted(3, 2, -12, 0);
+            painter->drawText(roomRect, Qt::AlignLeft | Qt::AlignTop,
+                metrics.elidedText(room, Qt::ElideRight, qMax(0, roomRect.width())));
+            painter->restore();
+        }
+        if (index.data(classKindRole).toString() != "auditory") return;
+        painter->save();
+        painter->setClipRect(option.rect);
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(QColor("#808080"));
+        const QPoint corner = option.rect.topRight();
+        painter->drawPolygon(QPolygon{corner, corner + QPoint(-9, 0), corner + QPoint(0, 9)});
+        painter->restore();
+    }
+private:
+    static QFont roomFont(QFont font)
+    {
+        if (font.pointSizeF() > 0) font.setPointSizeF(font.pointSizeF() * 0.8);
+        else if (font.pixelSize() > 0) font.setPixelSize(qMax(1, qRound(font.pixelSize() * 0.8)));
+        return font;
+    }
+};
 const QStringList weekdays{"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
 QLabel* label(const QString& text, QWidget* parent)
 {
@@ -136,7 +196,6 @@ CalendarPage::CalendarPage(LibraryController* controller, QWidget* parent) : QWi
     view_ = new QComboBox(this); view_->setObjectName("calendarView"); view_->addItems({"Month", "Week"}); navigation->addWidget(view_);
     heading_ = label({}, this); heading_->setObjectName("calendarHeading"); navigation->addWidget(heading_, 1);
     layout->addLayout(navigation);
-    policy_ = label("Open a library to use the calendar.", this); policy_->setObjectName("calendarPolicy"); layout->addWidget(policy_);
     auto* eventButtons = new QHBoxLayout;
     newEvent_ = button("New event…", "calendarNewEvent", this, eventButtons);
     editEvent_ = button("Edit event…", "calendarEditEvent", this, eventButtons);
@@ -145,8 +204,15 @@ CalendarPage::CalendarPage(LibraryController* controller, QWidget* parent) : QWi
     eventButtons->addStretch(); layout->addLayout(eventButtons);
     auto* mainSplit = new QSplitter(Qt::Vertical, this);
     auto* displaySplit = new QSplitter(mainSplit);
-    grid_ = new QTableWidget(displaySplit); grid_->setObjectName("calendarGrid"); grid_->setColumnCount(7);
-    grid_->setHorizontalHeaderLabels(weekdays); grid_->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    calendarViews_ = new QStackedWidget(displaySplit);
+    grid_ = new QTableWidget(calendarViews_); grid_->setObjectName("calendarGrid"); grid_->setColumnCount(6);
+    week_ = new CalendarWeek(calendarViews_);
+    calendarViews_->addWidget(grid_); calendarViews_->addWidget(week_);
+    connect(week_, &CalendarWeek::entrySelected, this, [this](const QString& eventId, const QString& classId) {
+        selectedEvent_ = eventId; selectedClass_ = classId; updateActions();
+    });
+    connect(week_, &CalendarWeek::entryActivated, this, &CalendarPage::activateEntry);
+    grid_->setHorizontalHeaderLabels(weekdays.mid(0, 6)); grid_->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     grid_->verticalHeader()->hide(); grid_->verticalHeader()->setMinimumSectionSize(64);
     grid_->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch); grid_->setEditTriggers(QAbstractItemView::NoEditTriggers); grid_->setSelectionMode(QAbstractItemView::NoSelection);
     auto* aside = new QWidget(displaySplit); auto* asideLayout = new QVBoxLayout(aside);
@@ -160,7 +226,7 @@ CalendarPage::CalendarPage(LibraryController* controller, QWidget* parent) : QWi
         tree->setSelectionMode(QAbstractItemView::SingleSelection); box->addWidget(tree); management->addTab(page, title); return box;
     };
     makeTab("Events in view", agenda_, "calendarAgenda"); agenda_->setHeaderLabels({"Title", "Date", "Time", "Type", "Course", "Status"});
-    auto* classLayout = makeTab("Weekly timetable", classes_, "calendarClasses"); classes_->setHeaderLabels({"Title", "Weekday", "Time", "Type", "Course", "Timezone"});
+    auto* classLayout = makeTab("Weekly timetable", classes_, "calendarClasses"); classes_->setHeaderLabels({"Title", "Weekday", "Time", "Type", "Course", "Timezone", "Room"});
     auto* classButtons = new QHBoxLayout;
     newClasses_ = button("Add weekly classes…", "calendarNewClasses", this, classButtons);
     editClasses_ = button("Edit class…", "calendarEditClass", this, classButtons);
@@ -249,21 +315,17 @@ void CalendarPage::render()
         const QDate monthLast(anchor.year(), anchor.month(), anchor.daysInMonth());
         const int rows = month ? static_cast<int>((first.daysTo(monthLast) + 7) / 7) : 1;
         const QDate last = first.addDays(rows * 7 - 1);
-        heading_->setText(month ? anchor.toString("MMMM yyyy") : first.toString("dd MMM yyyy") + " – " + last.toString("dd MMM yyyy"));
-        QString policy = "Display timezone: " + snapshot_.calendarTimeZone + ". ";
-        for (const auto& semester : snapshot_.semesters) if (semester.id == semesterId()) {
-            policy += semester.start.toString(Qt::ISODate) + " – " + semester.end.toString(Qt::ISODate) + ". Teaching: ";
-            policy += semester.teachingStart.isValid() ? semester.teachingStart.toString(Qt::ISODate) + " – " + semester.teachingEnd.toString(Qt::ISODate)
-                : semester.season == "winter" ? "October 1–December 31" : "February 18–May 31";
-            policy += "; clipped to semester. Classes pause in period 1, resume after it, and stop at period 2. Saved events remain visible.";
-        }
-        policy_->setText(policy);
+        heading_->setText(month ? anchor.toString("MMMM yyyy") : first.toString("dd MMM yyyy") + " – " + first.addDays(5).toString("dd MMM yyyy"));
         const auto entries = calendar::occurrences(snapshot_, first, last, semesterId());
         const auto periods = semesterId().isEmpty() ? snapshot_.examRanges : calendar::semesterRanges(snapshot_, semesterId());
-        grid_->clearContents(); grid_->setRowCount(rows);
-        for (int row = 0; row < rows; ++row) {
+        calendarViews_->setCurrentIndex(month ? 0 : 1);
+        if (!month) week_->setWeek(first, entries, snapshot_, periods);
+        grid_->clearContents(); grid_->setRowCount(month ? rows : 0);
+        // Keep the date, optional exam-period label and room/title lines visible.
+        grid_->verticalHeader()->setMinimumSectionSize(month ? qMax(110, fontMetrics().height() * 5 + 20) : 64);
+        for (int row = 0; month && row < rows; ++row) {
             grid_->setRowHeight(row, month ? 110 : 300);
-            for (int column = 0; column < 7; ++column) {
+            for (int column = 0; column < 6; ++column) {
                 const QDate date = first.addDays(row * 7 + column);
                 auto* cell = new QWidget(grid_); auto* box = new QVBoxLayout(cell); box->setContentsMargins(3, 3, 3, 3); box->setSpacing(2);
                 auto* day = new QPushButton(date.toString(month ? "d" : "ddd d MMM"), cell);
@@ -278,11 +340,14 @@ void CalendarPage::render()
                     auto* marker = label("Exam period " + QString::number(number), cell); marker->setToolTip(period.start.toString(Qt::ISODate) + " – " + period.end.toString(Qt::ISODate)); box->addWidget(marker);
                 }
                 auto* list = new QListWidget(cell); list->setObjectName("calendarEntries-" + date.toString(Qt::ISODate)); list->setWordWrap(!month);
+                list->setItemDelegate(new CalendarEntryDelegate(list));
                 list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff); box->addWidget(list, 1);
                 for (const auto& entry : entries) if (entry.date == date) {
-                    auto* item = new QListWidgetItem((entry.completed ? "✓ " : "") + (month ? QString() : timeText(entry, zone) + " · ") + entry.title + (entry.kind == "lab" ? " [LAB]" : ""), list);
+                    auto* item = new QListWidgetItem((entry.completed ? "✓ " : "") + (month ? QString() : timeText(entry, zone) + " · ") + calendarEntryTitle(entry.title, entry.kind), list);
+                    item->setData(classKindRole, entry.kind); item->setData(classRoomRole, entry.room);
+                    item->setData(Qt::AccessibleTextRole, item->text() + (entry.room.isEmpty() ? QString() : " · Room: " + entry.room));
                     item->setData(Qt::UserRole, entry.eventId); item->setData(Qt::UserRole + 1, entry.classId);
-                    item->setToolTip(entry.title + "\n" + timeText(entry, zone) + " · " + eventKindTitle(entry.kind) + " · " + courseName(snapshot_, entry.courseId) + "\n" + entry.warning);
+                    item->setToolTip(entry.title + "\n" + timeText(entry, zone) + " · " + eventKindTitle(entry.kind) + " · " + courseName(snapshot_, entry.courseId) + (entry.room.isEmpty() ? QString() : "\nRoom: " + entry.room) + "\n" + entry.warning);
                     colorItem(item, snapshot_, entry.courseId);
                     if (entry.completed) { auto font = item->font(); font.setStrikeOut(true); item->setFont(font); }
                 }
@@ -303,7 +368,7 @@ void CalendarPage::render()
         {
             const QSignalBlocker block(classes_); classes_->clear();
             for (const auto& slot : snapshot_.weeklyClasses) if (semesterId().isEmpty() || slot.semesterId == semesterId()) {
-                auto* item = new QTreeWidgetItem(classes_, {slot.title, weekdays.value(slot.weekday - 1), slot.start.toString("HH:mm") + "–" + slot.end.toString("HH:mm"), eventKindTitle(slot.kind), courseName(snapshot_, slot.courseId), slot.timeZone});
+                auto* item = new QTreeWidgetItem(classes_, {slot.title, weekdays.value(slot.weekday - 1), slot.start.toString("HH:mm") + "–" + slot.end.toString("HH:mm"), eventKindTitle(slot.kind), courseName(snapshot_, slot.courseId), slot.timeZone, slot.room});
                 item->setData(0, Qt::UserRole, slot.id); item->setToolTip(0, "Repeated time policy: " + slot.ambiguity + ". Nonexistent times are flagged, never shifted."); swatch(item, snapshot_, slot.courseId);
                 if (slot.id == selectedClass_) classes_->setCurrentItem(item);
             }
@@ -345,7 +410,7 @@ void CalendarPage::updateActions()
     newRange_->setEnabled(idle && open && !semesterId().isEmpty() && calendar::semesterRanges(snapshot_, semesterId()).size() < 3);
     editRange_->setEnabled(idle && rangeExists); deleteRange_->setEnabled(idle && rangeExists);
     semesterEdit_->setEnabled(idle && open && !semesterId().isEmpty()); timezoneEdit_->setEnabled(idle && open);
-    semesters_->setEnabled(open); grid_->setEnabled(idle && open); agenda_->setEnabled(idle && open); classes_->setEnabled(idle && open); ranges_->setEnabled(idle && open); upcoming_->setEnabled(idle && open);
+    semesters_->setEnabled(open); grid_->setEnabled(idle && open); week_->setEnabled(idle && open); agenda_->setEnabled(idle && open); classes_->setEnabled(idle && open); ranges_->setEnabled(idle && open); upcoming_->setEnabled(idle && open);
 }
 
 void CalendarPage::editEvent(const QString& id)
@@ -414,7 +479,7 @@ void CalendarPage::editClasses(const QString& id)
         bool found = false; for (const auto& slot : snapshot_.weeklyClasses) if (slot.id == id) { previous = slot; found = true; }
         if (!found) return;
     }
-    QDialog dialog(this); dialog.setObjectName("weeklyClassDialog"); dialog.setWindowTitle(id.isEmpty() ? "Add weekly classes" : "Edit weekly class"); dialog.resize(680, 560);
+    QDialog dialog(this); dialog.setObjectName("weeklyClassDialog"); dialog.setWindowTitle(id.isEmpty() ? "Add weekly classes" : "Edit weekly class"); dialog.resize(850, 560);
     auto* layout = new QVBoxLayout(&dialog); auto* form = new QFormLayout;
     auto* semester = semesterField(snapshot_, previous.semesterId, false, &dialog);
     auto* course = new QComboBox(&dialog); course->setObjectName("eventCourse"); fillCourses(course, snapshot_, previous.semesterId, previous.courseId);
@@ -423,29 +488,32 @@ void CalendarPage::editClasses(const QString& id)
     auto* zone = zoneField(previous.timeZone, &dialog); auto* ambiguity = resolutionField(previous.ambiguity, "classResolution", &dialog);
     form->addRow("Semester:", semester); form->addRow("Course:", course); form->addRow("Title:", title); form->addRow("Timezone:", zone); form->addRow("Repeated times:", ambiguity); layout->addLayout(form);
     auto* grid = new QGridLayout;
-    grid->addWidget(label("Weekday", &dialog), 0, 0); grid->addWidget(label("Starts", &dialog), 0, 1); grid->addWidget(label("Ends", &dialog), 0, 2); grid->addWidget(label("Type", &dialog), 0, 3);
-    QList<QCheckBox*> days; QList<QTimeEdit*> starts, ends; QList<QComboBox*> kinds;
-    for (int day = 1; day <= 7; ++day) {
+    grid->addWidget(label("Weekday", &dialog), 0, 0); grid->addWidget(label("Starts", &dialog), 0, 1); grid->addWidget(label("Ends", &dialog), 0, 2); grid->addWidget(label("Type", &dialog), 0, 3); grid->addWidget(label("Room (optional)", &dialog), 0, 4);
+    QList<QCheckBox*> days; QList<QTimeEdit*> starts, ends; QList<QComboBox*> kinds; QList<QLineEdit*> rooms;
+    const int dayCount = !id.isEmpty() && previous.weekday == 7 ? 7 : 6;
+    for (int day = 1; day <= dayCount; ++day) {
         auto* enabled = new QCheckBox(weekdays[day - 1], &dialog); enabled->setObjectName(QString("classDay%1").arg(day)); enabled->setChecked(!id.isEmpty() && previous.weekday == day); days.append(enabled);
         auto* start = timeField(previous.start, QString("classStart%1").arg(day), &dialog); starts.append(start);
         auto* end = timeField(previous.end, QString("classEnd%1").arg(day), &dialog); ends.append(end);
-        auto* kind = new QComboBox(&dialog); kind->setObjectName(QString("classKind%1").arg(day)); kind->addItem("Lecture", "lecture"); kind->addItem("Lab", "lab"); kind->setCurrentIndex(kind->findData(previous.kind)); kinds.append(kind);
-        for (QWidget* widget : {static_cast<QWidget*>(start), static_cast<QWidget*>(end), static_cast<QWidget*>(kind)}) {
+        auto* kind = new QComboBox(&dialog); kind->setObjectName(QString("classKind%1").arg(day)); for (const auto& type : weeklyClassKinds) kind->addItem(eventKindTitle(type), type); kind->setCurrentIndex(kind->findData(previous.kind)); kinds.append(kind);
+        auto* room = new QLineEdit(previous.room, &dialog); room->setObjectName(QString("classRoom%1").arg(day)); room->setPlaceholderText("e.g. 204"); rooms.append(room);
+        for (QWidget* widget : {static_cast<QWidget*>(start), static_cast<QWidget*>(end), static_cast<QWidget*>(kind), static_cast<QWidget*>(room)}) {
             widget->setEnabled(enabled->isChecked()); connect(enabled, &QCheckBox::toggled, widget, &QWidget::setEnabled);
         }
-        grid->addWidget(enabled, day, 0); grid->addWidget(start, day, 1); grid->addWidget(end, day, 2); grid->addWidget(kind, day, 3);
+        grid->addWidget(enabled, day, 0); grid->addWidget(start, day, 1); grid->addWidget(end, day, 2); grid->addWidget(kind, day, 3); grid->addWidget(room, day, 4);
     }
     layout->addLayout(grid);
-    layout->addWidget(label("New classes can use several weekdays with separate times/types. Editing changes one slot. Teaching dates and exam periods control recurrence; saved events are independent. Clock-change gaps are flagged without shifting the class.", &dialog));
+    layout->addWidget(label("New classes can use several weekdays with separate times, types and rooms. Editing changes one slot. Teaching dates and exam periods control recurrence; saved events are independent. Clock-change gaps are flagged without shifting the class.", &dialog));
     auto* problem = label({}, &dialog); problem->setObjectName("calendarFormError"); layout->addWidget(problem);
     QList<WeeklyClass> result; auto* buttons = dialogButtons(dialog, layout);
     connect(buttons, &QDialogButtonBox::accepted, &dialog, [&] {
         try {
             result.clear(); (void)calendar::timeZone(zone->currentText().trimmed());
-            for (int day = 1; day <= 7; ++day) if (days[day - 1]->isChecked()) {
+            for (int day = 1; day <= dayCount; ++day) if (days[day - 1]->isChecked()) {
                 WeeklyClass slot = previous; slot.semesterId = semester->currentData().toString(); slot.courseId = course->currentData().toString(); slot.weekday = day;
+                slot.room = rooms[day - 1]->text().trimmed();
                 slot.kind = kinds[day - 1]->currentData().toString(); slot.title = title->text().trimmed();
-                if (slot.title.isEmpty() && !slot.courseId.isEmpty()) slot.title = course->currentText() + " · " + eventKindTitle(slot.kind);
+                if (slot.title.isEmpty() && !slot.courseId.isEmpty()) slot.title = slot.kind == "lecture" ? course->currentText() + " · Lecture" : course->currentText();
                 if (slot.title.isEmpty()) throw Error("Enter a title or choose a course.");
                 slot.start = starts[day - 1]->time(); slot.end = ends[day - 1]->time(); slot.timeZone = zone->currentText().trimmed(); slot.ambiguity = ambiguity->currentData().toString();
                 if (slot.end <= slot.start) throw Error("Every class must end after it starts.");

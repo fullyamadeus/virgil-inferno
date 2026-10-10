@@ -1,4 +1,7 @@
 #include "ui/mainwindow.h"
+#include "ui/calendarpage.h"
+#include "ui/calendarweek.h"
+#include <QAbstractButton>
 #include "services/librarycontroller.h"
 #include <QAction>
 #include <QComboBox>
@@ -11,6 +14,8 @@
 #include <QDateEdit>
 #include <QCheckBox>
 #include <QPushButton>
+#include <QPainter>
+#include <QStyledItemDelegate>
 #include <QTabWidget>
 #include <QTreeWidget>
 #include <QListWidget>
@@ -705,11 +710,17 @@ private slots:
                 auto* course = dialog->findChild<QComboBox*>("eventCourse"); course->setCurrentIndex(course->findData(courseId));
                 if (dialog->windowTitle().startsWith("Edit")) {
                     dialog->findChild<QLineEdit*>("classTitle")->setText("Edited weekly lecture");
+                    auto* room = dialog->findChild<QLineEdit*>("classRoom1");
+                    QCOMPARE(room->text(), QString("101")); room->setText("102");
                     dialog->findChild<QTimeEdit*>("classStart1")->setTime(QTime(10, 0));
                     dialog->findChild<QTimeEdit*>("classEnd1")->setTime(QTime(11, 30));
                 } else {
                     dialog->findChild<QCheckBox*>("classDay1")->setChecked(true); dialog->findChild<QCheckBox*>("classDay3")->setChecked(true);
-                    dialog->findChild<QComboBox*>("classKind3")->setCurrentIndex(1);
+                    auto* kind = dialog->findChild<QComboBox*>("classKind3");
+                    QCOMPARE(kind->count(), 3);
+                    kind->setCurrentIndex(kind->findData("auditory"));
+                    dialog->findChild<QLineEdit*>("classRoom1")->setText("101");
+                    dialog->findChild<QLineEdit*>("classRoom3")->setText("Лаб 204");
                 }
                 save->click();
             } else if (dialog->objectName() == "examRangeDialog") {
@@ -729,15 +740,47 @@ private slots:
         auto* timetable = window.findChild<QTreeWidget*>("calendarClasses"); timetable->setCurrentItem(timetable->topLevelItem(0));
         const QString classId = timetable->currentItem()->data(0, Qt::UserRole).toString();
         window.findChild<QPushButton*>("calendarEditClass")->click();
-        QTRY_VERIFY_WITH_TIMEOUT([&] { for (const auto& slot : latest().weeklyClasses) if (slot.id == classId) return slot.title == "Edited weekly lecture" && slot.start == QTime(10, 0); return false; }(), 10000);
+        QTRY_VERIFY_WITH_TIMEOUT([&] { for (const auto& slot : latest().weeklyClasses) if (slot.id == classId) return slot.title == "Edited weekly lecture" && slot.start == QTime(10, 0) && slot.room == "102"; return false; }(), 10000);
         for (rangeNumber = 0; rangeNumber < 3; ++rangeNumber) {
             window.findChild<QPushButton*>("calendarNewRange")->click(); QTRY_COMPARE_WITH_TIMEOUT(latest().examRanges.size(), rangeNumber + 1, 10000);
         }
         QVERIFY(!window.findChild<QPushButton*>("calendarNewRange")->isEnabled());
         auto* anchor = window.findChild<QDateEdit*>("calendarDate"); auto* view = window.findChild<QComboBox*>("calendarView"); auto* grid = window.findChild<QTableWidget*>("calendarGrid");
         view->setCurrentIndex(1); anchor->setDate(QDate(2026, 11, 9));
-        QCOMPARE(grid->rowCount(), 1); QCOMPARE(grid->horizontalHeaderItem(0)->text(), QString("Monday")); QCOMPARE(grid->horizontalHeaderItem(6)->text(), QString("Sunday"));
-        QVERIFY(grid->cellWidget(0, 0)->findChild<QPushButton*>("calendarDay-2026-11-09"));
+        QVERIFY(window.findChild<CalendarWeek*>("calendarWeek")->isVisible());
+        QCOMPARE(grid->columnCount(), 6); QCOMPARE(grid->horizontalHeaderItem(0)->text(), QString("Monday")); QCOMPARE(grid->horizontalHeaderItem(5)->text(), QString("Saturday"));
+        QVERIFY(window.findChild<QPushButton*>("calendarDay-2026-11-09"));
+        QVERIFY(!window.findChild<QPushButton*>("calendarDay-2026-11-15"));
+        QVERIFY(!window.findChild<QLabel*>("calendarPolicy"));
+        auto checkAuditory = [&] {
+            auto* entries = window.findChild<QListWidget*>("calendarEntries-2026-11-11");
+            QVERIFY(entries); QCOMPARE(entries->count(), 1);
+            QVERIFY(entries->item(0)->text().contains("[AUDITORY]"));
+            QVERIFY(entries->item(0)->toolTip().contains("Auditory Exercises"));
+            QVERIFY(entries->item(0)->toolTip().contains("Room: Лаб 204"));
+            QVERIFY(entries->item(0)->data(Qt::AccessibleTextRole).toString().contains("Лаб 204"));
+            QImage image(240, 70, QImage::Format_ARGB32); image.fill(Qt::white);
+            QPainter painter(&image);
+            QStyleOptionViewItem option; option.rect = image.rect(); option.font = entries->font();
+            entries->itemDelegate()->paint(&painter, option, entries->model()->index(0, 0));
+            painter.end();
+            QCOMPARE(image.pixelColor(237, 2), QColor("#808080"));
+            // Text must actually be drawn in the top-left header, above the class title.
+            QFont small = entries->font(); small.setPointSizeF(small.pointSizeF() * 0.8);
+            const int headerHeight = QFontMetrics(small).height() + 4;
+            bool hasRoomInk = false;
+            const QColor background = image.pixelColor(0, 0);
+            for (int y = 2; y < headerHeight - 2; ++y)
+                for (int x = 3; x < 80; ++x) if (image.pixelColor(x, y) != background) hasRoomInk = true;
+            QVERIFY(hasRoomInk);
+        };
+        QString auditoryId;
+        for (const auto& slot : latest().weeklyClasses) if (slot.kind == "auditory") auditoryId = slot.id;
+        auto* auditoryCard = window.findChild<QAbstractButton*>("calendarWeekEntry-" + auditoryId + "-2026-11-11");
+        QVERIFY(auditoryCard); QVERIFY(auditoryCard->text().contains("[AUDITORY]"));
+        QVERIFY(!auditoryCard->text().contains("Auditory Exercises"));
+        QVERIFY(auditoryCard->accessibleName().contains("Лаб 204"));
+        view->setCurrentIndex(0); checkAuditory(); view->setCurrentIndex(1);
         auto* agenda = window.findChild<QTreeWidget*>("calendarAgenda"); QCOMPARE(agenda->topLevelItemCount(), 2);
         anchor->setDate(QDate(2026, 11, 16)); QCOMPARE(agenda->topLevelItemCount(), 2); // Saved events remain during the first period.
         for (int i = 0; i < agenda->topLevelItemCount(); ++i) QVERIFY(agenda->topLevelItem(i)->data(0, Qt::UserRole + 1).toString().isEmpty());
@@ -769,6 +812,65 @@ private slots:
         auto* classes = window.findChild<QTreeWidget*>("calendarClasses"); classes->setCurrentItem(classes->topLevelItem(0));
         window.findChild<QPushButton*>("calendarDeleteClass")->click(); QTRY_COMPARE_WITH_TIMEOUT(latest().weeklyClasses.size(), 1, 10000);
         driver.stop(); QCOMPARE(failures.count(), 0);
+    }
+
+    void calendarWeekAlignsTimesAndSharesOverlaps()
+    {
+        QTemporaryDir temporary;
+        Snapshot snapshot; snapshot.root = temporary.path(); snapshot.libraryId = "layout-library";
+        Semester semester; semester.id = "winter"; semester.name = "Winter"; semester.season = "winter";
+        semester.start = QDate(2026, 9, 1); semester.end = QDate(2027, 2, 28); snapshot.semesters.append(semester);
+        Course course; course.id = "course"; course.semesterId = semester.id; course.name = "Math"; course.color = "#e6c800"; snapshot.courses.append(course);
+        const auto add = [&](const QString& id, int weekday, QTime start, QTime end, const QString& kind = "lecture") {
+            WeeklyClass slot; slot.id = id; slot.semesterId = semester.id; slot.courseId = course.id;
+            slot.title = "Math · " + eventKindTitle(kind); slot.kind = kind; slot.weekday = weekday;
+            slot.start = start; slot.end = end; slot.room = "204"; snapshot.weeklyClasses.append(slot);
+        };
+        add("early", 1, {8, 0}, {9, 0}); add("overlap-a", 1, {10, 0}, {12, 0}, "auditory");
+        add("overlap-b", 1, {11, 0}, {13, 0}, "lab"); add("nested", 1, {11, 15}, {11, 45});
+        add("reuse", 1, {12, 0}, {13, 0}); add("touching", 1, {13, 0}, {14, 0});
+        add("last", 1, {20, 0}, {21, 0}); add("delayed", 2, {10, 0}, {11, 0});
+        add("same-time", 3, {8, 0}, {9, 0}); add("half-hour", 4, {8, 30}, {9, 30});
+        add("outside", 5, {7, 0}, {8, 0}); add("clipped", 6, {20, 30}, {21, 30});
+        add("sunday", 7, {10, 0}, {11, 0});
+        CalendarEvent allDay; allDay.id = "all-day"; allDay.title = "Deadline"; allDay.kind = "assignment";
+        allDay.date = QDate(2026, 11, 3); snapshot.events.append(allDay);
+        LibraryController controller; CalendarPage page(&controller); page.resize(1350, 900); page.show(); page.setSnapshot(snapshot);
+        page.findChild<QDateEdit*>("calendarDate")->setDate(QDate(2026, 11, 2));
+        page.findChild<QComboBox*>("calendarView")->setCurrentIndex(1);
+        QApplication::processEvents();
+        const auto card = [&](const QString& id, int day = 2) {
+            return page.findChild<QAbstractButton*>("calendarWeekEntry-" + id + "-2026-11-" + QString::number(day).rightJustified(2, '0'));
+        };
+        auto* early = card("early"); auto* a = card("overlap-a"); auto* b = card("overlap-b");
+        auto* nested = card("nested"); auto* reuse = card("reuse"); auto* touching = card("touching");
+        auto* last = card("last"); auto* delayed = card("delayed", 3); auto* sameTime = card("same-time", 4);
+        auto* halfHour = card("half-hour", 5); auto* outside = card("outside", 6); auto* clipped = card("clipped", 7);
+        QVERIFY(early && a && b && nested && reuse && touching && last && delayed && sameTime && halfHour && outside && clipped);
+        QCOMPARE(early->y(), sameTime->y()); QCOMPARE(a->y(), delayed->y());
+        const int hour = (delayed->y() - early->y()) / 2;
+        QVERIFY(hour > 0); QCOMPARE(early->height(), hour - 2);
+        QCOMPARE(a->height(), 2 * hour - 2); QCOMPARE(last->y() - early->y(), 12 * hour);
+        QCOMPARE(last->height(), hour - 2); QCOMPARE(halfHour->y() - early->y(), hour / 2);
+        QCOMPARE(clipped->height(), hour / 2 - 2);
+        QVERIFY(a->geometry().right() < b->x()); QVERIFY(b->geometry().right() < nested->x());
+        QCOMPARE(reuse->x(), a->x()); QVERIFY(touching->width() > a->width() * 2);
+        QVERIFY(a->text().contains("[AUDITORY]")); QVERIFY(!a->text().contains("Auditory Exercises"));
+        QVERIFY(b->text().contains("[LAB]")); QVERIFY(!b->text().contains(" · Lab"));
+        QVERIFY(outside->y() < early->y()); QVERIFY(card("all-day", 3)); QVERIFY(!card("sunday", 8));
+        QVERIFY(!page.findChild<QPushButton*>("calendarDay-2026-11-08"));
+        const auto painted = a->grab().toImage(); QCOMPARE(painted.pixelColor(painted.width() - 3, 2), QColor("#808080"));
+        QTest::mouseClick(a, Qt::LeftButton); QVERIFY(page.findChild<QPushButton*>("calendarEditClass")->isEnabled());
+        bool edited = false;
+        QTimer::singleShot(0, &page, [&] {
+            auto* dialog = qobject_cast<QDialog*>(QApplication::activeModalWidget());
+            if (!dialog) return;
+            edited = dialog->findChild<QLineEdit*>("classRoom1")->text() == "204";
+            dialog->reject();
+        });
+        QTest::mouseDClick(a, Qt::LeftButton); QVERIFY(edited);
+        const QString screenshot = qEnvironmentVariable("VIRGIL_WEEK_LAYOUT_SCREENSHOT");
+        if (!screenshot.isEmpty()) QVERIFY(page.grab().save(screenshot));
     }
 
     void separateProcessesPersistAndRespectLocks()

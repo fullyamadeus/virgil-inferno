@@ -8,11 +8,13 @@ class QLabel;
 class QListWidget;
 class QPushButton;
 class QTableWidget;
+class QStackedWidget;
 class QTreeWidget;
 class QTreeWidgetItem;
 
 namespace virgil {
 class LibraryController;
+class CalendarWeek;
 class CalendarPage : public QWidget {
     Q_OBJECT
 public:
@@ -37,7 +39,8 @@ private:
     QComboBox* view_;
     QDateEdit* anchor_;
     QLabel* heading_;
-    QLabel* policy_;
+    QStackedWidget* calendarViews_;
+    CalendarWeek* week_;
     QTableWidget* grid_;
     QTreeWidget* agenda_;
     QTreeWidget* classes_;

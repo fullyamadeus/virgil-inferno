@@ -176,6 +176,28 @@ void Database::initialize(bool create, const QString& expectedIdentity)
         query("PRAGMA user_version=4");
         migration.commit();
     }
+    if (version < 5) {
+        if (!create) createSnapshot(QSqlDatabase::database(connection_, false).databaseName() + ".before-v5-" + uuid() + ".sqlite");
+        Transaction migration(*this);
+        query("CREATE TABLE weekly_classes_v5 (id TEXT PRIMARY KEY, semester_id TEXT NOT NULL REFERENCES semesters(id), "
+              "course_id TEXT REFERENCES courses(id) ON DELETE SET NULL, title TEXT NOT NULL, "
+              "kind TEXT NOT NULL CHECK(kind IN ('lecture','lab','auditory')), weekday INTEGER NOT NULL CHECK(weekday BETWEEN 1 AND 7), "
+              "start_time TEXT NOT NULL, end_time TEXT NOT NULL CHECK(end_time > start_time), timezone TEXT NOT NULL, "
+              "ambiguity TEXT NOT NULL CHECK(ambiguity IN ('reject','earlier','later')))");
+        query("INSERT INTO weekly_classes_v5 SELECT id,semester_id,course_id,title,kind,weekday,start_time,end_time,timezone,ambiguity FROM weekly_classes");
+        query("DROP TABLE weekly_classes");
+        query("ALTER TABLE weekly_classes_v5 RENAME TO weekly_classes");
+        query("CREATE INDEX weekly_classes_semester ON weekly_classes(semester_id)");
+        query("PRAGMA user_version=5");
+        migration.commit();
+    }
+    if (version < 6) {
+        if (!create) createSnapshot(QSqlDatabase::database(connection_, false).databaseName() + ".before-v6-" + uuid() + ".sqlite");
+        Transaction migration(*this);
+        query("ALTER TABLE weekly_classes ADD COLUMN room TEXT NOT NULL DEFAULT ''");
+        query("PRAGMA user_version=6");
+        migration.commit();
+    }
     query("PRAGMA synchronous = FULL");
     auto check = query("PRAGMA quick_check");
     if (!check.next() || check.value(0).toString() != "ok")
@@ -234,10 +256,10 @@ Snapshot Database::records() const
         events.value(3).toString(), events.value(4).toString(), events.value(5).toBool(), QDate::fromString(events.value(6).toString(), Qt::ISODate),
         QDateTime::fromString(events.value(7).toString(), Qt::ISODateWithMs), QDateTime::fromString(events.value(8).toString(), Qt::ISODateWithMs),
         events.value(9).toString(), events.value(10).toBool()});
-    auto classes = query("SELECT id,semester_id,course_id,title,kind,weekday,start_time,end_time,timezone,ambiguity FROM weekly_classes ORDER BY weekday,start_time");
+    auto classes = query("SELECT id,semester_id,course_id,title,kind,weekday,start_time,end_time,timezone,ambiguity,room FROM weekly_classes ORDER BY weekday,start_time");
     while (classes.next()) result.weeklyClasses.append({classes.value(0).toString(), classes.value(1).toString(), classes.value(2).toString(),
         classes.value(3).toString(), classes.value(4).toString(), classes.value(5).toInt(), QTime::fromString(classes.value(6).toString(), "HH:mm:ss"),
-        QTime::fromString(classes.value(7).toString(), "HH:mm:ss"), classes.value(8).toString(), classes.value(9).toString()});
+        QTime::fromString(classes.value(7).toString(), "HH:mm:ss"), classes.value(8).toString(), classes.value(9).toString(), classes.value(10).toString()});
     auto ranges = query("SELECT id,semester_id,start_date,end_date FROM exam_ranges ORDER BY start_date");
     while (ranges.next()) result.examRanges.append({ranges.value(0).toString(), ranges.value(1).toString(),
         QDate::fromString(ranges.value(2).toString(), Qt::ISODate), QDate::fromString(ranges.value(3).toString(), Qt::ISODate)});

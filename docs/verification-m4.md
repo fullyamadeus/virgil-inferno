@@ -114,3 +114,87 @@ There is no reminder daemon, account sync or calendar import/export in this scop
    named course colors, the verified migration snapshot and metadata backup status.
 
 Milestone 4 is the current checkpoint; milestone 5 has not been started.
+
+## Weekly auditory exercises (2026-10-10)
+
+Added the third weekly class type, Auditory Exercises, with an AUDITORY label
+and black top-right triangle in Month and Week entries. Schema 5 upgrades weekly
+class constraints transactionally and keeps a verified pre-v5 metadata snapshot.
+This is a calendar extension, not the start of roadmap milestone 5.
+
+Commands and results:
+
+- `cmake -S . -B /tmp/virgil-build-debug -G Ninja -DCMAKE_BUILD_TYPE=Debug`
+  and `cmake --build /tmp/virgil-build-debug --parallel 2`: passed.
+- `ctest --test-dir /tmp/virgil-build-debug --output-on-failure -R '^(calendar|library)$'`:
+  both suites passed. Includes preservation of a schema-4 class, upgrade backup,
+  auditory edit/reopen/projection/delete, and rejection of invalid class types.
+- `ctest --test-dir /tmp/virgil-build-debug --output-on-failure -R '^widgets$'`:
+  timed out after 90 seconds in `firstLaunchThroughFormsAndRestart`, before
+  calendar checks ran.
+- `QT_QPA_PLATFORM=offscreen timeout 45s /tmp/virgil-build-debug/widget_test calendarTimetableExamPeriodsNavigationAndSemesterFilter`:
+  passed (3 Qt Test results including setup/cleanup). Covers choosing auditory
+  exercises in the form, label/tooltip text and black triangle rendering in both
+  calendar views, alongside existing recurrence and navigation checks.
+
+These are headless checks with Qt 6.10.3. Native desktop appearance has not been
+manually tested, and the installed application was not updated.
+
+## Weekly class rooms (2026-10-10)
+
+Each weekday slot now has an optional room field. Month and Week entries render
+it in smaller text at the top left, above the title; the auditory triangle stays
+at the top right. Long room names are elided visually and retained in tooltips
+and accessible text. Month rows have a minimum height that fits the room/title.
+Schema 6 adds a non-null room column with an empty default, after a verified
+pre-v6 metadata backup. Existing classes keep their IDs and type.
+
+Commands and results:
+
+- `cmake -S /home/AbbeFaria/virgil-inferno -B /tmp/virgil-build-debug -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/home/AbbeFaria/.local`
+  and `cmake --build /tmp/virgil-build-debug --parallel 2`: passed. The generated
+  desktop launcher points to `/home/AbbeFaria/.local/bin/virgil-desktop`.
+- `ctest --test-dir /tmp/virgil-build-debug --output-on-failure -R '^(calendar|library)$'`:
+  both suites passed. Covers schema-5 upgrades preserving auditory records, empty
+  room defaults, backup creation, separate weekday rooms, Unicode, trimming,
+  editing, clearing, reopening, projection and rejection of multiline rooms.
+- `QT_QPA_PLATFORM=offscreen VIRGIL_M4_SCREENSHOT=/tmp/virgil-rooms-week.png VIRGIL_M4_MONTH_SCREENSHOT=/tmp/virgil-rooms-month.png timeout 45s /tmp/virgil-build-debug/widget_test calendarTimetableExamPeriodsNavigationAndSemesterFilter`:
+  passed, including after the minimum-height adjustment. Covers room form
+  creation/editing, tooltip/accessibility text, and top-left room/top-right
+  triangle painting in both views. Headless screenshots were visually inspected.
+
+Qt 6.10.3; no native desktop testing. The full widget suite was not repeated
+because of the first-launch timeout recorded above. The installed executable
+has not been replaced. The prepared build can now be installed using
+`cmake --install /tmp/virgil-build-debug` from any directory.
+
+## Calendar space and time layout (2026-10-10)
+
+Removed the shared Library banner and calendar policy banner. Month and Week
+show Monday–Saturday. New weekly forms offer those six weekdays; existing Sunday
+records stay in storage and remain accessible through agenda/timetable editing.
+Week view now uses a shared 08:00–21:00 scale with proportional start positions
+and durations, and separate columns for overlapping entries. Back-to-back entries
+reuse a column. All-day/review/out-of-hours entries remain above the time grid.
+The room stays at the top left; auditory markers are gray (#808080). Generated
+Lab/Auditory Exercises suffixes are normalized for display so the bracketed label
+appears once. Saved titles and metadata are preserved.
+
+Validation on Qt 6.10.3:
+
+- `cmake --build /tmp/virgil-build-debug --parallel 2`: passed.
+- `ctest --test-dir /tmp/virgil-build-debug --output-on-failure -R '^(calendar|library)$'`:
+  both suites passed (2/2).
+- `QT_QPA_PLATFORM=offscreen VIRGIL_WEEK_LAYOUT_SCREENSHOT=/tmp/virgil-week-layout.png timeout 45s /tmp/virgil-build-debug/widget_test calendarWeekAlignsTimesAndSharesOverlaps calendarTimetableExamPeriodsNavigationAndSemesterFilter calendarEventFormsHandleClockChangesCompletionAndColorNames`:
+  passed (5 Qt Test results including setup/cleanup). Checks cross-day alignment,
+  empty time gaps, fractional starts, 20:00–21:00 placement, overlapping/nested
+  intervals, reused columns, clipping, all-day/out-of-hours access, gray marker,
+  labels, selection and double-click editing, existing forms and recurrence.
+- Headless Week and Month screenshots were inspected; Month capture used
+  `VIRGIL_M4_MONTH_SCREENSHOT=/tmp/virgil-six-day-month.png` with the same targeted
+  tests before the final Week badge typography adjustment.
+
+Native desktop testing was not performed. The full widget suite's earlier
+first-launch timeout remains uninvestigated; that suite was not repeated here.
+The installed executable is unchanged. Close Virgil and run
+`cmake --install /tmp/virgil-build-debug` to install this prepared build.
